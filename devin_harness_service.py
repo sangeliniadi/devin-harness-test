@@ -1,13 +1,13 @@
 """
-devin_harness_service.py — the harness itself.
+devin_harness_service.py - the harness itself.
 
-Per the policy doc: "harness is not a safety feature bolted onto Devin —
+Per the policy doc: "harness is not a safety feature bolted onto Devin -
 it is the specific way Devin is called." This file is that orchestration:
 call -> validate -> conditional next call, with Exel.Work's backend
 (this code) actively in the loop at every checkpoint, never letting Devin
 chain steps on its own.
 
-This is deliberately the smallest possible version of the full sequence —
+This is deliberately the smallest possible version of the full sequence -
 Stage 1 of the rollout plan (5.11): one step, one validation check, on a
 Tier-1-type ticket. Extend step-by-step from here rather than building the
 full assess -> implement -> PR sequence in one go.
@@ -56,7 +56,7 @@ def _tier_policy(tier: Tier) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Hard boundary enforcement — applies at every tier, no exceptions (5.4)
+# Hard boundary enforcement - applies at every tier, no exceptions (5.4)
 # ---------------------------------------------------------------------------
 
 def enforce_hard_boundaries(implement_output: ImplementOutput) -> None:

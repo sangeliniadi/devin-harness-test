@@ -1,6 +1,6 @@
 # Devin Harness — Exel.Work Delegation System
 
-A control layer that sits between Exel.Work tickets and Devin, deciding when Devin is allowed to proceed rather than trusting Devin's own judgment about its own work. Built over two weeks as an internship proof-of-concept; this document reflects the system's actual, current state — not the original Stage 1 plan.
+A control layer that sits between Exel.Work tickets and Devin, deciding when Devin is allowed to proceed rather than trusting Devin's own judgment about its own work. Built as an internship proof-of-concept; this document reflects the system's actual, current state.
 
 ## What this actually does, today
 
@@ -31,7 +31,7 @@ See **[`docs/SystemOverview.md`](docs/SystemOverview.md)** for the full detail o
 - **No resume mechanism.** A ticket that stops for human checkpoint review has no built way to be told "approved, continue."
 - **No Exel.Work connection of any kind.** See `docs/ExelWorkIntegration.md` for what this would require.
 - **Not tested on any project besides `EX`.** The repo mapping only has one entry.
-- **Real end-to-end (assess → implement → PR) has been tested exactly twice**, both on a sandboxed test branch, both requiring a manual checkpoint bypass since no resume mechanism exists.
+- **Real end-to-end (assess → implement → PR) has been tested three times**, all on a sandboxed test branch, all requiring a manual checkpoint bypass since no resume mechanism exists. CI verification is now confirmed working — see `docs/ExelWorkIntegration.md` for the one real caveat found.
 
 Full list of smaller known gaps: **[`docs/KnownFollowUps.md`](docs/KnownFollowUps.md)**.
 
@@ -54,7 +54,3 @@ Assess-only by default — add `--implement` only against a repo/branch you're f
 - **[`docs/ExelWorkIntegration.md`](docs/ExelWorkIntegration.md)** — proposed Exel.Work configuration model and a plain readiness assessment: what's confirmed working, and what's still blocking a real integration.
 - **[`docs/KnownFollowUps.md`](docs/KnownFollowUps.md)** — smaller known code gaps, documented honestly rather than built.
 - **[`docs/FutureIntegrations.md`](docs/FutureIntegrations.md)** — genuine Devin platform capabilities not yet used (Knowledge, Skills, Playbooks, Automations), with concrete recommendations for whoever continues this — none of it built or approved yet.
-
-## Maintainers and support
-
-Built by Sofia Angeliniadi as a summer internship project. For questions going forward, contact Andrei or Michalis.

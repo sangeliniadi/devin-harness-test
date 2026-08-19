@@ -2,7 +2,7 @@
 
 All notable changes to the Devin harness, in the order they were actually built. No formal versioning was used for this internship project — entries are grouped by when the work happened.
 
-## Final week — polish and documentation
+## Final week — polish, documentation, and closing the loop on CI verification
 
 ### Changed
 - README fully rewritten to reflect the system's actual current state, replacing the original Stage 1 proof-of-concept description.
@@ -10,15 +10,16 @@ All notable changes to the Devin harness, in the order they were actually built.
 
 ### Added
 - `docs/ExelWorkIntegration.md` — proposed Exel.Work configuration model plus a direct business-readiness assessment.
-- `docs/KnownFollowUps.md` — smaller known code gaps, documented rather than built, per direction to focus on documentation this week.
+- `docs/KnownFollowUps.md` — smaller known code gaps, documented rather than built.
+- `docs/FutureIntegrations.md` — genuine Devin platform capabilities not yet used, documented for later consideration.
 - `jira_status` field on ticket context, with a warning when a ticket already marked Done/Closed is fetched — found after running a real, closed ticket (EX-42) through assessment and discovering Devin had no way to know it was already resolved.
 
 ### Fixed
 - Session error handling: a Devin timeout, or a session marked "expired" without reporting completion, is now caught and returned as a clean, labeled failure instead of crashing the script or risking incomplete data being trusted as real.
 
 ### Tested
-- First two real, complete assess → implement → PR runs, both on a sandboxed test branch. Both required a manual checkpoint bypass, since no resume mechanism exists yet.
-- Real GitHub PR review process confirmed working end to end for the first time.
+- Three real, complete assess → implement → PR runs, all on a sandboxed test branch, all requiring a manual checkpoint bypass since no resume mechanism exists yet.
+- **Real GitHub CI verification confirmed working for the first time**, with `GITHUB_TOKEN` set: the harness correctly caught a mismatch between Devin's self-reported CI status and GitHub's actual check-run data, and blocked on it. The mismatch found was mundane — the test branch had no CI configured at all — not a caught falsehood, but the verification mechanism itself is now proven, not just built. See `docs/KnownFollowUps.md` for the one real gap this surfaced (can't yet distinguish "no CI configured" from "CI genuinely failed").
 
 ## Retry / iteration logic
 
