@@ -23,6 +23,7 @@ See **[`docs/SystemOverview.md`](docs/SystemOverview.md)** for the full detail o
 | `run_ticket_interactive.py` | Build a ticket by answering prompts - used for hypothetical or test tickets. |
 | `run_ticket.py` | JSON-file-based ticket runner, superseded by the two above. |
 | `test_retry.py` | Local, quota-free tests proving the retry decision logic is correct. |
+| `run_implement_manual_override.py`, `run_implement_manual_override_sandbox2.py` |	Testing-only scripts that bypass the human checkpoint on an already-reviewed assessment, used since no resume mechanism exists yet — see docs/SystemOverview.md for exactly how and why. |
 
 ## What this deliberately does not do yet
 
