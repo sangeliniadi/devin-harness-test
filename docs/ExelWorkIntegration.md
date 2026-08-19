@@ -106,6 +106,12 @@ All real implement tests required a **manual bypass of the human checkpoint**, b
 - **Testing was bounded by one person's access the entire time** - one Jira account, one set of permissions, one repository. Real-world usage at another project or with a different service account's permission set is genuinely untested, not just theoretically likely to work.
 - **The CI check can't yet distinguish "nothing configured" from "genuinely failed."** See above - worth a real fix before production use, not a blocker for evaluating the harness itself.
 
+### Extending to other projects
+
+Everything in this repo has been built and tested against exactly one project (EX) and one repository. Concretely, before a second project can run at all:
+
+**Recommended first-test approach for a new project, same discipline already proven here:** extend the repo map, review and update protected_paths for that repo's actual structure, run one real ticket assess-only first and confirm the targeting genuinely worked, then set up a dedicated sandbox branch before ever attempting implement mode - don't point a first implement attempt at the new project's real main branch. Reviewer/escalation emails and tier expectations should also be treated as unconfirmed for a new project until directly checked. None of this has actually been done yet - this is a recommended procedure, not a completed result.
+
 ### Strategic potential, beyond this specific harness
 
 Worth separating from the readiness question above: even accounting for everything still missing, there's a case for why this is worth continued investment specifically, not just "AI delegation in general."
