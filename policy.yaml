@@ -1,0 +1,126 @@
+# policy.yaml — tunes how strict harness validation is per risk tier.
+# This is "Supporting", not the harness itself — it's read by
+# devin_harness_service.py at each checkpoint to decide how hard to check
+# Devin's structured_output before allowing the next API call.
+#
+# The master-merge boundary and the protected-path boundary are NOT
+# configured per-tier below — they're hardcoded checks in the harness code
+# itself, with no tier exception. Only *review strictness* is tunable per tier.
+
+# What the service account actually has, today. Checked against each
+# ticket's required_permissions (see AssessImpactOutput). Keep this
+# current as real permissions change — it's the source of truth for the
+# "does this need access we don't have" check that caught EX-65.
+granted_permissions:
+  - github_read_write_code
+  - github_open_pull_request
+  - jira_browse
+  - jira_create_issue
+  - jira_edit_fields
+  # Deliberately NOT granted: jira_transition_issue (confirmed absent — EX-65)
+
+# File paths that are never touched regardless of tier or reported risk —
+# checked against ImplementOutput.files_changed as a hard boundary, not a
+# tier-tunable rule. Devin's default GitHub grant technically allows writes
+# here, so this is the actual enforcement, not just a prompt instruction.
+protected_paths:
+  - ".github/workflows/"
+  - ".env"
+  - "alembic/versions/"
+  - "migrations/"
+
+tiers:
+  1:
+    name: "Low"
+    examples:
+      - "Reproducible bug fix"
+      - "Test coverage on stable module"
+      - "Spec'd config/UI copy change"
+    assess_step:
+      require_computed_score_min: 0.6
+      mandatory_evidence_fields:
+        - checked_protected_areas
+        - documentation_checked_if_exists
+        - identified_affected_files
+        - analysis_is_code_grounded
+        - tests_identified_if_applicable
+      block_if_touches_customer_data: true
+      block_if_touches_auth_or_security: true
+      block_if_touches_production_config: true
+      require_single_focused_change: true
+      require_testable_success_criteria: true
+      require_sufficient_context: true
+      max_affected_files: 3
+    implement_step:
+      require_tests_passing: true
+      require_ci_status: "passed"
+      auto_fix_enabled: true
+    human_review:
+      checkpoint_level: false      # only final PR + CI status reviewed
+      final_pr_required: true
+
+  2:
+    name: "Medium"
+    examples:
+      - "Small feature, multi-file change"
+      - "No existing Playbook"
+    assess_step:
+      require_computed_score_min: 0.75
+      mandatory_evidence_fields:
+        - checked_protected_areas
+        - documentation_checked_if_exists
+        - has_testable_success_criteria
+        - identified_affected_files
+        - analysis_is_code_grounded
+        - tests_identified_if_applicable
+      block_if_touches_customer_data: true
+      block_if_touches_auth_or_security: true
+      block_if_touches_production_config: true
+      require_single_focused_change: true
+      require_explicit_scope_flag: true   # impact assessment must name affected files/scope
+      require_testable_success_criteria: true
+      require_sufficient_context: true
+      max_affected_files: 10
+    implement_step:
+      require_tests_passing: true
+      require_ci_status: "passed"
+      auto_fix_enabled: false
+    human_review:
+      checkpoint_level: true       # human reviews EACH checkpoint before next call
+      final_pr_required: true
+
+  3:
+    name: "High"
+    examples:
+      - "Production config changes"
+      - "Customer data / auth / security-sensitive paths"
+      - "Ambiguous or open-ended requests"
+    assess_step:
+      require_computed_score_min: 0.9
+      mandatory_evidence_fields:
+        - documentation_checked_if_exists
+        - read_impacted_files_fully
+        - identified_affected_files
+        - analysis_is_code_grounded
+        - tests_identified_if_applicable
+        - checked_protected_areas
+        - has_testable_success_criteria
+      require_exact_match_criteria: true   # strictest — structural validation is not enough
+      require_single_focused_change: true
+      require_testable_success_criteria: true
+      require_sufficient_context: true
+      max_affected_files: null   # uncapped — always human-reviewed regardless of size
+    implement_step:
+      require_tests_passing: true
+      require_ci_status: "passed"
+      auto_fix_enabled: false
+    human_review:
+      checkpoint_level: true
+      final_pr_required: true
+      may_remain_fully_human_managed: true  # tier 3 may never enter the harness at all
+
+hard_boundaries:
+  # Enforced unconditionally in devin_harness_service.py, regardless of tier.
+  # Listed here only for visibility/documentation, not as a toggle.
+  - "no_direct_master_merge"
+  - "no_writes_to_protected_paths"
