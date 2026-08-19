@@ -1,41 +1,40 @@
 # Exel.Work Integration Requirements
 
-A recommended configuration model for connecting this harness to Exel.Work, based on concrete gaps hit during real testing — not designed from first principles alone.
+A recommended configuration model for connecting this harness to Exel.Work, based on concrete gaps hit during real testing.
 
 ## Proposed project-level fields
 
 **Fields with direct evidence behind them:**
 
-- **`repository_url`, `jira_project_key`** — the harness has to know which GitHub repo a Jira project maps to; Jira has no native concept of this. `jira_client.py` currently hardcodes one project (`EX`). This field replaces that hardcoding.
-- **`default_branch`** — the implement step needs a real, confirmed target branch, not an assumption. Currently hardcoded to `main` in `jira_client.py`. Confirmed correct for `ganttxbyexelia` by checking branch protection directly, but that confirmation was manual — this field should hold the confirmed value going forward, per project.
-- **`technical_lead`, `pr_reviewer`** — reviewer identity can't reliably come from Jira per-ticket. Jira Cloud hides assignee/reporter emails by default, and every real ticket fetched this project fell back to a placeholder as a result — not occasional, every single time.
-- **`github_token_reference`** — the harness independently verifies CI status against GitHub's real check-run data rather than trusting Devin's claim. Confirmed working: with a real token configured, a real test caught a genuine mismatch between Devin's self-reported status and GitHub's actual data, and correctly blocked on it. The specific mismatch found was mundane (the test branch had no CI configured at all, so GitHub reported "unknown" against Devin's "pending"), not a dramatic caught falsehood — but the mechanism itself is proven, which is the point of this field.
-- **`jira_service_account_permissions_confirmed`** — whatever account the harness runs under should be deliberately checked, so permission gaps aren't accidentally missed. On the personal account used throughout this project, two separate permission gaps were found this way: a missing write permission (Transition Issues, EX-65) and missing read/diagnostic access (production logs and DB access, EX-42). Testing was also bounded throughout by this one personal account's access and by the repo mapping covering one project only — any need outside that narrow scope hasn't been tested in either direction.
-- **`devin_credential_reference`** — every session this project ever ran, without exception, ran on a personal API key, not a scoped service account. This is a real, unresolved decision, not a minor detail.
-- **`deployment_risk_flag`** — if merging to `main` auto-deploys, a human's PR approval and a live production change become the same click, without them necessarily knowing it. Every other conservative commitment in this project's plan (no merge, no Jira writes, no confidence-score reliance) is enforced by the harness itself — this is the one that isn't; it depends on infrastructure the harness never touches. Unconfirmed whether this repo's target branch actually does this.
-- **`devin_quota_alert_contact`, `max_daily_delegated_tickets`** — manual testing has a natural pace; a webhook-triggered production system has none. Even a generous quota can be consumed unattended if nothing is watching.
+- **`repository_url`, `jira_project_key`** - the harness has to know which GitHub repo a Jira project maps to; Jira has no native concept of this. `jira_client.py` currently hardcodes one project (`EX`). This field replaces that hardcoding.
+- **`technical_lead`, `pr_reviewer`** - reviewer identity can't reliably come from Jira per-ticket. Jira Cloud hides assignee/reporter emails by default, and every real ticket fetched this week fell back to a placeholder as a result.
+- **`github_token_reference`** - the harness independently verifies CI status against GitHub's real check-run data rather than trusting Devin's claim. That check needs a token configured. This was never actually exercised successfully during real testing — `GITHUB_TOKEN` wasn't set in either real implement run this week, so this capability exists in code but is still unconfirmed against a real PR in practice.
+- **`jira_service_account_permissions_confirmed`** - whatever account the harness runs under should be deliberately checked, so permission gaps aren't accidentally missed. On the personal account used throughout this project, two separate permission gaps were found this way: a missing write permission (Transition Issues, EX-65) and missing read/diagnostic access (production logs and DB access, EX-42). Testing was also bounded throughout by this one personal account's access and by the repo mapping covering one project only - any need outside that narrow scope hasn't been tested in either direction.
+- **`devin_credential_reference`** - every session this project ever ran, ran on a personal API key, not a scoped service account.
+- **`deployment_risk_flag`** - if merging to `main` auto-deploys, a human's PR approval and a live production change become the same click, without them necessarily knowing it. Every other conservative commitment in this project's plan (no merge, no Jira writes, no confidence-score reliance) is enforced by the harness itself - this is the one that isn't; it depends on infrastructure the harness never touches. Unconfirmed whether this repo's target branch actually does this.
+- **`devin_quota_alert_contact`, `max_daily_delegated_tickets`** - manual testing has a natural pace; a webhook-triggered production system has none. Even a generous quota can be consumed unattended if nothing is watching.
 
-**Fields that are reasonable proposals, not yet backed by a specific finding:**
+**Fields that are reasonable proposals:**
 
-- **`repository_provider`** — the harness only assumes GitHub today, untested against anything else.
-- **`allowed_target_branches`** — untested; the harness has only ever targeted one branch at a time by convention, not by an enforced allowlist.
-- **`safe_delegation_enabled`** — a per-project kill switch, general good practice rather than something a specific gap forced.
-- **`qa_owner`, `escalation_owner`** — follow from the escalation model proposed below, not from an external requirement yet.
-- **`allowed_tiers`, `protected_paths`** — currently global settings; per-project is a reasonable anticipation of multi-project use, not yet needed by the single-project reality tested.
+- **`repository_provider`** - the harness only assumes GitHub today, untested against anything else.
+- **`allowed_target_branches`** - untested; the harness has only ever targeted one branch at a time by convention, not by an enforced allowlist.
+- **`safe_delegation_enabled`** - a per-project kill switch, general good practice rather than something a specific gap forced.
+- **`qa_owner`, `escalation_owner`** - follow from the escalation model proposed below, not from an external requirement yet.
+- **`allowed_tiers`, `protected_paths`** - currently global settings; per-project is a reasonable anticipation of multi-project use, not yet needed by the single-project reality tested.
 
 ## Why four separate reviewer-type fields, not one generic "reviewer"
 
-- **`technical_lead`** — Is this the right approach?
-- **`pr_reviewer`** — Is this code correct and mergeable?
-- **`qa_owner`** — Does this actually work?
-- **`escalation_owner`** — Did something try to happen that never should?
+- **`technical_lead`** - Is this the right approach?
+- **`pr_reviewer`** - Is this code correct and mergeable?
+- **`qa_owner`** - Does this actually work?
+- **`escalation_owner`** - Did something try to happen that never should?
 
 A single generic "reviewer" field would force every kind of concern through one person regardless of whether that's who should actually handle it.
 
 ## Proposed reviewer and escalation ownership
 
 - **A gate failure needing judgment** (`open_questions`, `self_critique_raised_blockers`, `documentation_drift_found`) → `technical_lead`.
-- **A ready-for-review PR** → nobody, via Exel.Work — GitHub already notifies natively; duplicating that adds a channel for the same event.
+- **A ready-for-review PR** → nobody, via Exel.Work - GitHub already notifies natively; duplicating that adds a channel for the same event.
 - **A hard boundary violation** (attempted master merge, protected-path write) → `escalation_owner`, high-severity.
 - **A missing permission** → `escalation_owner`.
 - **A CI/test failure at PR-readiness** → `qa_owner`.
@@ -56,7 +55,7 @@ Per Exel.Work's own goal of "a very clear picture" of what happened, the followi
 
 **GitHub-native** (no Exel.Work involvement): PR review requests, review comments, CI status. Already handled correctly by GitHub; duplicating adds nothing.
 
-**Exel.Work-originated** (no GitHub equivalent): anything from the escalation table above — no natural home elsewhere, since only Exel.Work has the ticket/tier/gate context to raise these meaningfully.
+**Exel.Work-originated** (no GitHub equivalent): anything from the escalation table above - no natural home elsewhere, since only Exel.Work has the ticket/tier/gate context to raise these meaningfully.
 
 ## What stays where
 
