@@ -36,6 +36,20 @@ Human reviews and merges the PR (always required)
 
 Devin no longer self-rates its own confidence for gating purposes. It answers seven concrete yes/no evidence questions (did it read the impacted files fully, is the analysis grounded in real code, did it check protected areas, etc.), and the harness computes the actual score from those answers. Devin's own `confidence_score` is still reported, but only for logging - proven unstable across reruns of the same ticket (17–45 point swings), while the harness-computed score stayed consistent.
 
+## What the harness actually sees vs. what Devin actually did
+
+Every result the harness returns comes only from structured_output (AssessImpactOutput/ImplementOutput, models.py). What Devin actually produces is a much richer narrative report - confirmed against real runs (EX-42, EX-61, EX-65, EX-71, EX-87): grounded findings with exact file/line citations, blast radius, adversarial self-critique, a testability verdict, documentation-vs-code drift naming exact doc lines, and a closing recommendation.
+
+The harness result is a deliberately lossy compression, not an index into the full report. To see the actual investigation, you need the session itself - the harness has no persisted link back to it (see docs/KnownFollowUps.md). Five real full reports are kept as source material in docs/examples/.
+
+**What's actually in an assessment report**, at a glance - full field-by-field definitions live in `models.py`, this is just orientation:
+- **Evidence answers** - the seven yes/no questions the deterministic score is built from (documentation read, files read fully, analysis grounded, etc.)
+- **Gate narrative fields** - the free-text detail behind each of the six gates (initial understanding, blast-radius notes, self-critique, documentation-drift notes)
+- **Risk flags** - whether the change touches customer data, auth/security, or production config
+- **Scope** - affected files, a plain-language description of scope, and the recommended approach
+- **Open items** - `open_questions`, anything genuinely unresolved that Devin surfaced rather than guessed at
+- **Devin's own `confidence_score`** - kept for logging/comparison only, never used for gating (see "Deterministic scoring" above)
+
 ## What's self-reported vs. independently verified
 
 Not every check in the harness is the same kind of guarantee, and it's worth noting rather than letting "the harness checks it" imply more than it does. Most checks validate what Devin *says* about itself - real, code-level, unbypassable by anything in Devin's phrasing, and no longer subject to Devin grading its own confidence - but still ultimately trusting Devin's own report of what it did. A much smaller number check against a fact the harness maintains completely independently of Devin.
