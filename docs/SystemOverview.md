@@ -40,7 +40,7 @@ Devin no longer self-rates its own confidence for gating purposes. It answers se
 
 Every result the harness returns comes only from structured_output (AssessImpactOutput/ImplementOutput, models.py). What Devin actually produces is a much richer narrative report - confirmed against real runs (EX-42, EX-61, EX-65, EX-71, EX-87): grounded findings with exact file/line citations, blast radius, adversarial self-critique, a testability verdict, documentation-vs-code drift naming exact doc lines, and a closing recommendation.
 
-The harness result is a deliberately lossy compression, not an index into the full report. To see the actual investigation, you need the session itself - the harness has no persisted link back to it (see docs/KnownFollowUps.md). Five real full reports are kept as source material in docs/examples/.
+The harness result is a **deliberately lossy compression**, not an index into the full report. To see the actual investigation, you need the session itself - the harness has no persisted link back to it (see `docs/KnownFollowUps.md`). Five real full reports are kept as source material in [`docs/examples.md`](./examples.md).
 
 ## What's self-reported vs. independently verified
 
