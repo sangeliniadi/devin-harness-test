@@ -19,7 +19,7 @@ Six analysis gates evaluated + deterministic score computed
        Yes                   Ticket stops, scoping report returned,
         │                    escalated for human input
         ↓
-   Tier requires review, or Devin flagged open questions, self-critique concerns, or         documentation drift?  ──Yes──→  Stops for human checkpoint
+   Tier requires review, or Devin flagged open questions, self-critique concerns, or documentation drift?  ──Yes──→  Stops for human checkpoint
         │
         No
         ↓
