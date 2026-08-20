@@ -52,6 +52,6 @@ Assess-only by default - add `--implement` only against a repo/branch you're ful
 ## Documentation
 
 - **[`docs/SystemOverview.md`](docs/SystemOverview.md)** - how each mechanism actually works, in full detail.
-- **[`docs/ExelWorkIntegration.md`](docs/ExelWorkIntegration.md)** - proposed Exel.Work configuration model and a plain readiness assessment: what's confirmed working, and what's still blocking a real integration.
+- **[`docs/ExelWorkIntegration.md`](docs/ExelWorkIntegration.md)** - proposed Exel.Work configuration model, what's confirmed working, what's still blocking a real integration and a business readiness assessment with a final recommendation.
 - **[`docs/KnownFollowUps.md`](docs/KnownFollowUps.md)** - smaller known code gaps, documented rather than built.
-- **[`docs/FutureIntegrations.md`](docs/FutureIntegrations.md)** - Devin platform capabilities not yet used (Knowledge, Skills, Playbooks, Automations), with recommendations for whoever continues this - none of it built or approved yet.
+- **[`docs/FutureIntegrations.md`](docs/FutureIntegrations.md)** - Devin platform capabilities not yet used (Automations, Session Insights, Knowledge, Skills, Playbooks), with recommendations for whoever continues this project.
