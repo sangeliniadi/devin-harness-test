@@ -19,8 +19,7 @@ Six analysis gates evaluated + deterministic score computed
        Yes                   Ticket stops, scoping report returned,
         │                    escalated for human input
         ↓
-   Tier requires review, or Devin flagged open questions /
-   self-critique concerns?  ──Yes──→  Stops for human checkpoint
+   Tier requires review, or Devin flagged open questions, self-critique concerns, or         documentation drift?  ──Yes──→  Stops for human checkpoint
         │
         No
         ↓
@@ -41,9 +40,13 @@ Devin no longer self-rates its own confidence for gating purposes. It answers se
 
 Run within the assess step: initial understanding, code-grounded analysis, blast-radius, documentation reconciliation, critical self-review, and testability. A gate failure is traceable to the specific step that failed, not a flat list of reasons.
 
+**In practice:** EX-64 passed every gate cleanly, and the gates caught real things, not just formal boxes - documentation reconciliation traced the bug back to a design doc that contained the buggy code as a worked example, and self-critique explicitly declined a scope expansion beyond what the ticket asked for. EX-87 passed four gates with real depth before correctly stopping at testability, showing the sequence evaluates each gate independently rather than short-circuiting.
+
 ## Tiering - intake classification
 
 Every ticket gets an automatic starting tier (1, 2, or 3) from its Type + Priority (never set by the client directly, via `tier_mapping.py`). Tier determines how strict validation is - file-count ceilings, which evidence fields are mandatory, whether human checkpoint review is required on every step. The mapping is deliberately asymmetric: a bug's risk comes from what it touches, not urgency, so priority barely moves it, except a high-priority bug often signals an active incident, which tends to be rushed and under-specified. A task carries more inherent ambiguity than a bug, so urgency compounds risk. A story needs product judgment regardless of urgency, so Type alone floors it at Tier 2. The tier is provisional and can only be pushed stricter by Devin's own findings, never relaxed.
+
+Concretely: Tier 1 (Low) - minimum score 0.6, a smaller set of mandatory evidence fields, capped at 3 affected files, no checkpoint-level review required. Tier 2 (Medium) - minimum score 0.75, more fields mandatory, capped at 10 files, human reviews every checkpoint. Tier 3 (High) - minimum score 0.9, all seven evidence fields mandatory, uncapped files, always human-reviewed, and may stay fully human-managed rather than entering the harness at all.
 
 ## Automatic tier promotion
 
@@ -52,6 +55,10 @@ If a ticket fails only because it's larger than its tier allows - nothing else w
 ## Retry on a weak first pass
 
 If assessment fails purely on thoroughness - Devin didn't fully read a file, didn't ground its analysis - the harness can ask it to redo specifically those parts once, rather than failing outright. Only fires when every failing field is genuinely fixable by trying again; anything else (untestable criteria, a missing permission, a hard block) blocks the retry entirely, since a second attempt can't fix those. A successful retry is checked for genuinely different content before being trusted - a "pass" with suspiciously identical output to the first attempt forces human review instead.
+
+**Real example:** EX-87 was typed Bug/Medium, mapping to Tier 1. Devin's investigation found the change spanned more files than Tier 1's 3-file ceiling allows. Before this feature existed, that just dead-ended the ticket - a human had to notice the failure, realize the initial tier guess was wrong, and manually re-triage it. Now the harness re-checks automatically against Tier 2 and passes under the stricter rules, with human review still forced.
+
+**Tested independently of Devin:** ran validate_assess_step() against two constructed cases. A clean ticket with only a file-count breach correctly promoted from Tier 1 to Tier 2 and passed under the stricter rules, with human review forced. The same breach alongside an unrelated problem (untestable criteria) correctly stayed at Tier 1 and failed, exactly as before - confirming a mixed failure never promotes.
 
 ## Real CI verification
 
