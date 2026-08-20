@@ -90,7 +90,7 @@ GitNexus was tested separately as a possible independent blast-radius check agai
 
 ### What's genuinely built and working
 
-The core validation logic is solid and repeatedly tested against real tickets: deterministic scoring, the six analysis gates, automatic tier promotion, retry-on-weak-analysis, and hard boundary enforcement. All of these have real evidence behind them. Three real, complete assess → implement → PR cycles were run end to end, all producing genuine, reviewable PRs with no unintended side effects.
+The core validation logic is solid and repeatedly tested against real tickets: deterministic scoring, the six analysis gates, automatic tier promotion, retry-on-weak-analysis, and hard boundary enforcement. All of these have real evidence behind them. Two tickets (SANDBOX-1, SANDBOX-2) were run end to end through the full assess → implement → PR cycle, producing genuine, reviewable PRs with no unintended side effects. SANDBOX-1 was re-run a third time specifically to validate CI verification once it was wired in.
 
 ### What's confirmed working but only in a sandboxed, manual way
 
