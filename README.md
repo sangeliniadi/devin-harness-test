@@ -1,6 +1,6 @@
 # Devin Harness - Exel.Work Delegation System
 
-A control layer that sits between Exel.Work tickets and Devin, deciding when Devin is allowed to proceed rather than trusting Devin's own judgment about its own work. Built over two weeks as an internship proof-of-concept; this document reflects the system's actual, current state.
+A control layer that sits between Exel.Work tickets and Devin, deciding when Devin is allowed to proceed rather than trusting Devin's own judgment about its own work. Built as a proof-of-concept; this document reflects the system's actual, current state.
 
 ## What this does today
 
@@ -53,5 +53,5 @@ Assess-only by default - add `--implement` only against a repo/branch you're ful
 
 - **[`docs/SystemOverview.md`](docs/SystemOverview.md)** - how each mechanism actually works, in full detail.
 - **[`docs/ExelWorkIntegration.md`](docs/ExelWorkIntegration.md)** - proposed Exel.Work configuration model and a plain readiness assessment: what's confirmed working, and what's still blocking a real integration.
-- **[`docs/KnownFollowUps.md`](docs/KnownFollowUps.md)** - smaller known code gaps, documented honestly rather than built.
-- **[`docs/FutureIntegrations.md`](docs/FutureIntegrations.md)** - genuine Devin platform capabilities not yet used (Knowledge, Skills, Playbooks, Automations), with concrete recommendations for whoever continues this - none of it built or approved yet.
+- **[`docs/KnownFollowUps.md`](docs/KnownFollowUps.md)** - smaller known code gaps, documented rather than built.
+- **[`docs/FutureIntegrations.md`](docs/FutureIntegrations.md)** - Devin platform capabilities not yet used (Knowledge, Skills, Playbooks, Automations), with recommendations for whoever continues this - none of it built or approved yet.
