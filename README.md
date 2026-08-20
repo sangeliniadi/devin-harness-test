@@ -78,3 +78,4 @@ Add `--implement` only against a repo/branch you're fully comfortable with Devin
 - **[`docs/ExelWorkIntegration.md`](docs/ExelWorkIntegration.md)** - proposed Exel.Work configuration model, what's confirmed working, what's still blocking a real integration and a business readiness assessment with a final recommendation.
 - **[`docs/KnownFollowUps.md`](docs/KnownFollowUps.md)** - smaller known code gaps, documented rather than built.
 - **[`docs/FutureIntegrations.md`](docs/FutureIntegrations.md)** - Devin platform capabilities not yet used (Automations, Session Insights, Knowledge, Skills, Playbooks), with recommendations for whoever continues this project.
+- **[`docs/examples.md`](docs/examples.md)** - five full, summarised real assessment reports, cited as evidence throughout the docs above.
