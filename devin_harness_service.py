@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import yaml
 
@@ -236,7 +236,7 @@ def validate_assess_step(
     promotable_reasons: list[str] = []
 
     computed_score, evidence = compute_deterministic_score(output)
-    min_score = rules.get("require_computed_score_min", rules.get("require_confidence_score_min", 0.6))
+    min_score = rules.get("require_computed_score_min", 0.6)
     if computed_score < min_score:
         failed_evidence = [k for k, v in evidence.items() if not v]
         reasons.append(
@@ -498,11 +498,11 @@ def run_assess_step(ticket: TicketContext) -> tuple[AssessImpactOutput, Validati
 # retrying won't fix those. Same reasoning already used to decide which
 # tier-1-vs-ceiling failures are eligible for automatic tier promotion.
 RETRYABLE_EVIDENCE_FIELDS = {
-    "read_relevant_documentation",
+    "documentation_checked_if_exists",
     "read_impacted_files_fully",
     "identified_affected_files",
     "analysis_is_code_grounded",
-    "identified_required_tests",
+    "tests_identified_if_applicable",
     "checked_protected_areas",
 }
 
@@ -518,11 +518,11 @@ def _retry_prompt_addendum(failed_fields: set[str]) -> str:
     answered false on — tells Devin specifically what to redo, rather than
     a generic 'try harder,' which risks wasting the retry on the same gaps."""
     field_explanations = {
-        "read_relevant_documentation": "you reported not reading relevant documentation that does exist — go read it now",
+        "documentation_checked_if_exists": "you reported not reading relevant documentation that does exist — go read it now",
         "read_impacted_files_fully": "you reported not reading the impacted files in their entirety — go read them fully now",
         "identified_affected_files": "you didn't explicitly identify the specific affected files/symbols — name them explicitly this time",
         "analysis_is_code_grounded": "your analysis wasn't grounded in code you actually read — re-do the analysis grounded in real files, not general reasoning",
-        "identified_required_tests": "tests apply to this change but you didn't identify which ones — identify the specific tests now",
+        "tests_identified_if_applicable": "tests apply to this change but you didn't identify which ones — identify the specific tests now",
         "checked_protected_areas": "you didn't explicitly check whether this touches auth, customer data, migrations, secrets, or production config — check explicitly now",
     }
     lines = [field_explanations[f] for f in sorted(failed_fields) if f in field_explanations]
