@@ -36,18 +36,41 @@ See **[`docs/SystemOverview.md`](docs/SystemOverview.md)** for the full detail o
 
 Full list of smaller known gaps: **[`docs/KnownFollowUps.md`](docs/KnownFollowUps.md)**.
 
-## Running it
+## Setup and running it
 
 ```bash
+git clone https://github.com/Exelia-Technologies/devin-harness-test.git
+cd devin-harness-test
+python3 -m venv venv
+source venv/bin/activate        # Mac/Linux
+# venv\Scripts\activate         # Windows (PowerShell: venv\Scripts\Activate.ps1)
 pip install -r requirements.txt
+```
+Then set the required environment variables (only last for the current terminal session):
+
+```bash
 export DEVIN_API_KEY=your_key_here
 export JIRA_BASE_URL=https://your-instance.atlassian.net
 export JIRA_EMAIL=you@example.com
 export JIRA_API_TOKEN=your_jira_token
+export GITHUB_TOKEN=your_github_token   # optional — enables real CI verification; without it, falls back to trusting Devin's self-reported status
+```
+
+Then run a real ticket, assess-only by default:
+
+```bash
 python run_ticket_from_jira.py EX-55
 ```
 
-Assess-only by default - add `--implement` only against a repo/branch you're fully comfortable with Devin actually committing to; the script asks for explicit confirmation before doing so.
+Or build a hypothetical/manual ticket instead, no real Jira ticket needed:
+
+```bash
+python run_ticket_interactive.py
+```
+
+Add `--implement` only against a repo/branch you're fully comfortable with Devin actually committing to — this is a real, visible action, not a dry run, and the script asks for explicit confirmation before proceeding.
+
+**Troubleshooting:** `... is not set` means an environment variable didn't actually take in this terminal session (check with `echo $DEVIN_API_KEY`). `ModuleNotFoundError` usually means you're not in the venv — check for `(venv)` in your prompt. A long hang is normal for real Devin sessions, which are asynchronous; a 30-minute timeout is itself useful signal a ticket may be mis-scoped for its tier.
 
 ## Documentation
 
