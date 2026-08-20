@@ -66,7 +66,7 @@ In line with the goal of having a clear picture of what happened, the following 
 
 GitNexus was tested separately as a possible independent blast-radius check against five real tickets' actual findings - one agreement out of five. The consistent cause: it only sees function-call relationships, while most of this app's real risk lives in shared data, API boundaries, or rendering behavior instead. Full detail was reviewed separately. Not adopted as a blast-radius gate. One narrower use - reliably tracing a real function's call path into actual auth code - is worth a small, separate follow-up.
 
-### What's still missing, not just "future work"
+## What's still missing, not just "future work"
 
 - **No webhook listener.** Every ticket this project ever processed was fetched manually, by running a script. Nothing fires automatically off a real Jira event.
 - **No Jira write-back.** The harness cannot update a real ticket's status, even though it can read one.
@@ -77,7 +77,7 @@ GitNexus was tested separately as a possible independent blast-radius check agai
 - **No Exel.Work ↔ Jira consistency check.** Not buildable yet regardless, since no real connection between Exel.Work and the harness exists - but worth naming as its own gap, not folded into the webhook item above.
 - **Reviewer-readiness genuinely unconfirmed.** Not a code gap - nobody has actually confirmed Technical Leads have the time and context to meaningfully review AI-generated PRs at the pace this would eventually run at.
 
-### Open decisions still unresolved
+## Open decisions still unresolved
 
 - **Whether the current stop-and-flag behavior on an ambiguous ticket satisfies "request clarification,"** or something more active (actually notifying a person, not just an internal flag) is wanted.
 - **Whether Jira column moves should happen automatically** once a ticket's status changes - currently always manual.
