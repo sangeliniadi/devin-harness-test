@@ -1,18 +1,18 @@
 # Exel.Work Integration Requirements
 
-A recommended configuration model for connecting this harness to Exel.Work, based on concrete gaps hit during real testing - not designed from first principles alone.
+A recommended configuration model for connecting this harness to Exel.Work, based on gaps hit during real testing - not first principles alone.
 
 ## Proposed project-level fields
 
 **Fields with direct evidence behind them:**
 
 - **`repository_url`, `jira_project_key`** - the harness has to know which GitHub repo a Jira project maps to; Jira has no native concept of this. `jira_client.py` currently hardcodes one project (`EX`). This field replaces that hardcoding.
-- **`default_branch`** - the implement step needs a real, confirmed target branch, not an assumption. Currently hardcoded to `main` in `jira_client.py`. Confirmed correct for `ganttxbyexelia` by checking branch protection directly, but that confirmation was manual - this field should hold the confirmed value going forward, per project.
+- **`default_branch`** - the implement step needs a real, confirmed target branch, not a shared assumption. Currently hardcoded to main in jira_client.py, manually confirmed correct for ganttxbyexelia by checking branch protection directly - nothing confirms that's right for a different project. This field should hold the confirmed value per project going forward.
 - **`technical_lead`, `pr_reviewer`** - reviewer identity can't reliably come from Jira per-ticket. Jira Cloud hides assignee/reporter emails by default, and every real ticket fetched this project fell back to a placeholder as a result.
-- **`github_token_reference`** - the harness independently verifies CI status against GitHub's real check-run data rather than trusting Devin's claim. Confirmed working: with a real token configured, a test caught a mismatch between Devin's self-reported status and GitHub's actual data, and correctly blocked on it. The specific mismatch found was mundane (the test branch had no CI configured at all, so GitHub reported "unknown" against Devin's "pending"), not a dramatic caught falsehood - but the mechanism itself is proven, which is the point of this field.
-- **`jira_service_account_permissions_confirmed`** - whatever account the harness runs under should be deliberately checked, so permission gaps aren't accidentally missed. On the personal account used throughout this project, two separate permission gaps were found this way: a missing write permission (Transition Issues, EX-65) and missing read/diagnostic access (production logs and DB access, EX-42). Testing was also bounded throughout by this one personal account's access and by the repo mapping covering one project only - any need outside that narrow scope hasn't been tested in either direction.
-- **`devin_credential_reference`** - every session this project ever ran was on a personal API key, not a scoped service account. This is a real, unresolved decision, not a minor detail.
-- **`deployment_risk_flag`** - if merging to `main` auto-deploys, a human's PR approval and a live production change become the same click, without them necessarily knowing it. Every other conservative commitment in this project's plan (no merge, no Jira writes, no confidence-score reliance) is enforced by the harness itself - this is the one that isn't; it depends on infrastructure the harness never touches. Unconfirmed whether this repo's target branch actually does this.
+- **`github_token_reference`** - the harness independently verifies CI status against GitHub's real data rather than trusting Devin's claim. Confirmed working - see the readiness assessment below for the one real caveat found.
+- **`jira_service_account_permissions_confirmed`** - whatever account the harness runs under should be deliberately checked, so permission gaps aren't missed by accident. On the personal account used throughout, two separate gaps were found this way: a missing write permission (EX-65) and missing read/diagnostic access (EX-42). Testing was also bounded by that one account's access and by the repo mapping covering one project only - anything outside that scope is untested.
+- **`devin_credential_reference`** - every session this project ever ran was on a personal API key, not a scoped service account. This is a real, unresolved decision.
+- **`deployment_risk_flag`** - if merging to `main` auto-deploys, a human's PR approval and a live production change become the same click, without them necessarily knowing it. Every other conservative commitment (no merge, no Jira writes, no confidence-score reliance) is enforced by the harness itself. Not believed to be an issue for ganttxbyexelia specifically, but this should be checked and confirmed for any future repo or branch before assuming it's safe.
 - **`devin_quota_alert_contact`, `max_daily_delegated_tickets`** - manual testing has a natural pace; a webhook-triggered production system has none. Even a generous quota can be consumed unattended if nothing is watching.
 
 **Fields that are reasonable proposals, not yet backed by a specific finding:**
@@ -42,7 +42,7 @@ A single generic "reviewer" field would force every kind of concern through one 
 
 ## Suggested audit trail
 
-Per Exel.Work's own goal of "a very clear picture" of what happened, the following should be logged as structured, queryable data for every ticket, regardless of outcome:
+In line with the goal of having a clear picture of what happened, the following should be logged as structured, queryable data for every ticket, regardless of outcome:
 
 - Timestamp and ticket ID on every event
 - The provisional tier assigned, and which Type/Priority combination produced it
@@ -52,33 +52,15 @@ Per Exel.Work's own goal of "a very clear picture" of what happened, the followi
 - Every human review event: who was notified, why, and what they decided
 - The final outcome: merged, rejected, escalated, or still pending
 
-## Suggested notification rules
-
-**GitHub-native** (no Exel.Work involvement): PR review requests, review comments, CI status. Already handled correctly by GitHub; duplicating adds nothing.
-
 **Exel.Work-originated** (no GitHub equivalent): anything from the escalation table above - no natural home elsewhere, since only Exel.Work has the ticket/tier/gate context to raise these meaningfully.
 
-## What stays where
+## What stays where and who notifies about what
 
-**Exel.Work owns:** client-facing ticket status (mirroring Jira), project configuration, tier assignment and policy, gate results and the audit trail, escalation routing.
+**Exel.Work owns:** client-facing ticket status (mirroring Jira), project configuration, tier assignment and policy, gate results and the audit trail, escalation routing - since only Exel.Work has the tier and gate context needed to raise escalations meaningfully.
 
-**Jira owns:** ticket lifecycle, Type, Priority, and description, once a ticket reaches the harness. The client authors these in Exel.Work first, at intake - but `jira_client.py` only ever reads from Jira, so once the harness is involved, Jira is the live, correctable copy. This avoids a failure already found this project: the `Epic.quarter_target` bug happened because multiple parts of the codebase each kept their own version of the same field, and they drifted out of sync.
+**Jira owns:** ticket lifecycle, Type, Priority, and description, once a ticket reaches the harness. The client authors these in Exel.Work first, at intake - but jira_client.py only ever reads from Jira, so once the harness is involved, Jira is the correctable copy. This avoids a failure already found this project: the Epic.quarter_target bug happened because multiple parts of the codebase each kept their own version of the same field, and they drifted out of sync.
 
-**GitHub owns:** code, PRs, branch protection, CI - and continues notifying natively for PR events.
-
-## Business readiness assessment - is this actually ready to integrate?
-
-**Short answer: not yet. Here's exactly what's built, what's confirmed working, and what's still blocking a real integration.**
-
-### What's genuinely built and working
-
-The core validation logic is solid and repeatedly tested against real tickets: deterministic scoring, the six analysis gates, automatic tier promotion, retry-on-weak-analysis, and hard boundary enforcement. All of these have real evidence behind them.Three real, complete assess → implement → PR cycles were run end to end, all producing genuine, reviewable PRs with no unintended side effects.
-
-### What's confirmed working but only in a sandboxed, manual way
-
-All real implement tests required a **manual bypass of the human checkpoint**, because there's no resume mechanism - a ticket that stops for review has no built way to be told "approved, continue." This was done deliberately, on a test branch, with fake tickets, specifically to prove the mechanism works - not something to rely on for real usage as-is.
-
-**CI verification is now confirmed working**, with one real caveat worth understanding before trusting it in production: it correctly detects a mismatch between Devin's claim and GitHub's real data, but "no CI configured on this branch at all" and "CI ran and genuinely failed" both currently surface the same way - as a mismatch. Before relying on this for a real integration, confirm the actual target branch has CI properly wired up, or this check will correctly-but-unhelpfully block every PR regardless of code quality.
+**GitHub owns:** code, PRs, branch protection, CI - and already notifies natively for PR reviews, comments, and CI status; duplicating that through Exel.Work adds nothing.
 
 ### What's still missing, not just "future work"
 
@@ -91,39 +73,48 @@ All real implement tests required a **manual bypass of the human checkpoint**, b
 - **No Exel.Work ↔ Jira consistency check.** Not buildable yet regardless, since no real connection between Exel.Work and the harness exists - but worth naming as its own gap, not folded into the webhook item above.
 - **Reviewer-readiness genuinely unconfirmed.** Not a code gap - nobody has actually confirmed Technical Leads have the time and context to meaningfully review AI-generated PRs at the pace this would eventually run at.
 
-### Open decisions still genuinely unresolved
+### Open decisions still unresolved
 
 - **Whether the current stop-and-flag behavior on an ambiguous ticket satisfies "request clarification,"** or something more active (actually notifying a person, not just an internal flag) is wanted.
 - **Whether Jira column moves should happen automatically** once a ticket's status changes - currently always manual.
-- **Whether the harness should stay a separate service or be embedded into Exel.Work's own backend** - not something this project proposes an answer to. One relevant data point for whoever decides: the harness currently depends on several credentials (Devin, Jira, GitHub) managed independently as environment variables, not through Exel.Work.
+- **Whether the harness should stay a separate service or be embedded into Exel.Work's own backend** - not something this project proposes an answer to. The harness currently depends on several credentials (Devin, Jira, GitHub) managed independently as environment variables, not through Exel.Work.
 - **Who formally owns tier policy going forward** - the mapping mechanism works, but nobody has signed off on it as official policy.
+  
+## Business readiness assessment - is this actually ready to integrate?
 
-### Known weaknesses and open concerns, not just gaps
+**Short answer: not yet. Here's exactly what's built, what's confirmed working, and what's still blocking a real integration.**
 
-- **The system has no way to distinguish "verify a claimed fix" from "investigate an open bug."** Running a real, already-closed ticket through assessment showed Devin has no way to know a ticket was already marked Done - it investigates it as a live, unresolved problem regardless. A status field now exists and prints a warning, but nothing in the actual gating logic accounts for this distinction.
-- **Devin's own self-reported confidence score was shown to be genuinely unstable** - swinging by 17–45 points between separate runs of the identical ticket, which is exactly why gating moved away from it. This instability is a property of the underlying model's self-assessment, not something this harness can fully control for even with the current mitigations.
-- **Retry and tier-promotion logic are both deliberately conservative, which has a real cost.** Across every real ticket tested this project, the vast majority failed for reasons the harness correctly judged unfixable by retrying or promoting - meaning most real, messy tickets will still require a human to intervene rather than being cleanly resolved automatically. This is a safety-first design choice, but it means the near-term realistic throughput of fully automated tickets is low.
-- **Testing was bounded by one person's access the entire time** - one Jira account, one set of permissions, one repository. Real-world usage at another project or with a different service account's permission set is genuinely untested, not just theoretically likely to work.
-- **The CI check can't yet distinguish "nothing configured" from "genuinely failed."** See above - worth a real fix before production use, not a blocker for evaluating the harness itself.
+### What's genuinely built and working
+
+The core validation logic is solid and repeatedly tested against real tickets: deterministic scoring, the six analysis gates, automatic tier promotion, retry-on-weak-analysis, and hard boundary enforcement. All of these have real evidence behind them. Three real, complete assess → implement → PR cycles were run end to end, all producing genuine, reviewable PRs with no unintended side effects.
+
+### What's confirmed working but only in a sandboxed, manual way
+
+All real implement tests required a **manual bypass of the human checkpoint**, because there's no resume mechanism - a ticket that stops for review has no built way to be told "approved, continue." This was done deliberately, on a test branch, with fake tickets, specifically to prove the mechanism works - not something to rely on for real usage as-is.
+
+**CI verification is now confirmed working**, with one real caveat worth understanding before trusting it in production: it correctly detects a mismatch between Devin's claim and GitHub's real data, but "no CI configured on this branch at all" and "CI ran and genuinely failed" both currently surface the same way - as a mismatch. Before relying on this for a real integration, confirm the actual target branch has CI properly wired up, or this check will correctly-but-unhelpfully block every PR regardless of code quality.
 
 ### Extending to other projects
 
-Everything in this repo has been built and tested against exactly one project (EX) and one repository. Concretely, before a second project can run at all:
+Everything here has been built and tested against exactly one project (EX) and one repository.
 
-**Recommended first-test approach for a new project, same discipline already proven here:** extend the repo map, review and update protected_paths for that repo's actual structure, run one real ticket assess-only first and confirm the targeting genuinely worked, then set up a dedicated sandbox branch before ever attempting implement mode - don't point a first implement attempt at the new project's real main branch. Reviewer/escalation emails and tier expectations should also be treated as unconfirmed for a new project until directly checked. None of this has actually been done yet - this is a recommended procedure, not a completed result.
+**Recommended first-test approach for a new project:** 
+1. Add a new entry to PROJECT_REPO_MAP in jira_client.py: "NEWKEY": "Exelia-Technologies/the-repo-name".
+2. Review protected_paths in policy.yaml for that repo's actual structure - alembic/versions/ is this repo's own migration tool's folder name, not a generic pattern, so a different stack will have different sensitive paths, and reusing this list unchanged risks leaving them unprotected.
+3. Run one real ticket assess-only: python run_ticket_from_jira.py NEWKEY-<ticket>. Confirm targeting actually worked by checking whether affected_files in the result genuinely references the new repo, not ganttxbyexelia.
+4. Once confirmed, create a dedicated sandbox branch on the new repo (same pattern as test/DevinTest) before attempting implement mode - never point a first implement attempt at the new project's real main branch.
+5. Treat reviewer/escalation emails and tier expectations as unconfirmed for the new project until directly checked.
 
-### Strategic potential, beyond this specific harness
-
-Worth separating from the readiness question above: even accounting for everything still missing, there's a case for why this is worth continued investment specifically, not just "AI delegation in general."
-
-**The core pattern generalizes beyond Devin.** The actual design principle here - the harness independently deciding whether to trust an AI's output, rather than trusting the AI's own self-reported confidence - isn't tied to Devin specifically. If it holds up under further development, it's a pattern that could reasonably extend to other AI tools the company adopts later, not a one-off integration.
-
-**The audit trail has value independent of how much gets automated.** Being able to see exactly why a given change passed or got flagged - which evidence checks failed, what triggered human review - is a real asset for accountability on its own, separate from raw ticket throughput.
-
-**Realistic near-term scope:** small, clearly-scoped bugs and copy/UI fixes can already go from ticket to PR with no human touching the code. Larger or judgment-heavy work isn't there yet, but the harness already does a real, useful first pass on those too - identifying affected files, flagging risk, surfacing the actual open questions - so a human reviewing it isn't starting from zero. That review step should get faster and more efficient as more infrastructure gets built and it's tested against more tickets - the goal being genuine time saved for the team, not additional review overhead.
+**Realistic near-term scope:** small, clearly-scoped bugs and copy/UI fixes can already go from ticket to PR untouched. Larger or judgment-heavy work isn't there yet, but the harness still does a useful first pass - affected files, risk flags, open questions - so review isn't starting from zero. That should get faster as more infrastructure gets built and it's tested on more tickets, saving time rather than adding overhead.
 
 ### The direct recommendation
 
-This project is worth continuing to invest in. The most uncertain part of this problem was not the infrastructure but whether an AI's own judgment about its own work could be trusted, which has been genuinely proven: deterministic scoring, six analysis gates, tier promotion, retry logic, and independent CI verification, all repeatedly tested against real tickets with real evidence behind each one.
+This project set out to answer whether Devin could be safely handed real Exel.Work tickets - not whether AI can write code in general, but whether client work specifically could be delegated with confidence. The evidence supports a genuinely positive answer.
 
-What's left for implementation - a webhook, Jira write-back, a resume mechanism, and a proper service account - will strengthen the case for whether the harness is a viable solution for automating ticket-to-PR workflows. This project will, no doubt, require further strengthening, but a solid case can be made for which requests are suitable for Devin, how to classify them, what Devin should report before any code is written, where the technical lead should approve, reject, or ask for clarification, and what safeguards are needed to ensure that Devin, alongside a harness, can be trusted to make changes to the codebase.
+The core risk was always that an AI agent's own claims about its work can't be trusted outright, especially on a client's real codebase. confidence_score swinging 17-45 points between two runs of the identical ticket showed exactly why. The harness built around that - replacing self-reported confidence with deterministic checks - held up under repeated real testing: it correctly refused to retry work a retry couldn't fix, correctly declined to promote a ticket when something else was also wrong, and caught a genuine mismatch between Devin's claim and GitHub's actual data rather than trusting the more convenient answer. These are exactly the situations where handing real client work to an AI without this kind of control would go wrong quietly.
+
+What remains is practical: a webhook, Jira write-back, a resume mechanism, a proper service account - not questions of whether the approach works, but what's needed to move from proof of concept to daily use. Worth being direct: this won't clear a backlog on day one. Every real implement test still needed a manual checkpoint bypass, and most real tickets tested needed a person to step in.
+
+Even so, that's not the right measure of its value yet. On tickets it can't fully resolve, it already does the groundwork a developer would otherwise do manually - affected files, real risk flagged, the actual open question surfaced - so review starts from something, not nothing.
+
+The project is worth continuing to invest in. Not because it's finished, but because the part that needed proving first - whether this specific kind of delegation could be made safe - has been.
