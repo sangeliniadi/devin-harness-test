@@ -52,7 +52,7 @@ In line with the goal of having a clear picture of what happened, the following 
 - Every human review event: who was notified, why, and what they decided
 - The final outcome: merged, rejected, escalated, or still pending
 
-**Exel.Work-originated** (no GitHub equivalent): anything from the escalation table above - no natural home elsewhere, since only Exel.Work has the ticket/tier/gate context to raise these meaningfully.
+**On success metrics:** the original delegation policy proposed tracking acceptance rate, tier accuracy, checkpoint failure rate, and a 2-4 week review cadence. This audit trail is what would generate the raw data for all of those - but computing and reviewing them is deliberately deferred, not addressed, since there isn't yet real usage volume to make any of those numbers meaningful. Worth revisiting once tickets are flowing through the webhook-triggered path rather than one at a time by hand.
 
 ## What stays where and who notifies about what
 
