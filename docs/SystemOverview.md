@@ -36,6 +36,23 @@ Human reviews and merges the PR (always required)
 
 Devin no longer self-rates its own confidence for gating purposes. It answers seven concrete yes/no evidence questions (did it read the impacted files fully, is the analysis grounded in real code, did it check protected areas, etc.), and the harness computes the actual score from those answers. Devin's own `confidence_score` is still reported, but only for logging - proven unstable across reruns of the same ticket (17–45 point swings), while the harness-computed score stayed consistent.
 
+## What's self-reported vs. independently verified
+
+Not every check in the harness is the same kind of guarantee, and it's worth noting rather than letting "the harness checks it" imply more than it does. Most checks validate what Devin *says* about itself - real, code-level, unbypassable by anything in Devin's phrasing, and no longer subject to Devin grading its own confidence - but still ultimately trusting Devin's own report of what it did. A much smaller number check against a fact the harness maintains completely independently of Devin.
+
+| Check | Basis |
+|---|---|
+| Deterministic score, mandatory evidence fields, all six analysis gates | Devin's self-report (now structured yes/no evidence instead of a confidence number, but still Devin's own account of what it did) |
+| Touches customer data / auth / production config | Devin's self-report |
+| File count under tier ceiling | Devin's self-report (its own file list) |
+| No direct master merge, no writes to protected paths | Devin's self-report (`attempted_master_merge`, `files_changed`), checked in code against a static list |
+| Required permissions are ones the service account actually has | Devin self-reports what it thinks it needs; compared against `granted_permissions` in `policy.yaml` - an externally-maintained fact, not something Devin can be right or wrong about on its own |
+| PR CI status | GitHub's real check-run data, when a token is configured and a PR exists - otherwise falls back to Devin's self-report, and that fallback is explicitly recorded via `ci_verification_source` |
+| Branch protection on `main` | Independent of Devin entirely - GitHub's own ruleset, enforced by GitHub itself at merge time, not by the harness |
+| Jira `Transition Issues` permission | Independent of Devin entirely - simply not granted; a transition call would fail outright regardless of anything the harness concludes |
+
+The takeaway for anyone extending this: only CI verification, branch protection, and the Jira permission check don't depend on Devin accurately reporting on itself. Everything else - including every evidence field, every gate, and the deterministic score built from them - is a real, enforced rule that Devin cannot talk its way past with better phrasing, but it is still checking Devin's word, not an independent fact. Moving more checks from the left column to the right (Eg. a real secret scan on the diff) is the direction that actually closes the remaining trust gap, not just adding more self-report fields.
+
 ## Six analysis gates
 
 Run within the assess step: initial understanding, code-grounded analysis, blast-radius, documentation reconciliation, critical self-review, and testability. A gate failure is traceable to the specific step that failed, not a flat list of reasons.
@@ -47,6 +64,16 @@ Run within the assess step: initial understanding, code-grounded analysis, blast
 Every ticket gets an automatic starting tier (1, 2, or 3) from its Type + Priority (never set by the client directly, via `tier_mapping.py`). Tier determines how strict validation is - file-count ceilings, which evidence fields are mandatory, whether human checkpoint review is required on every step. The mapping is deliberately asymmetric: a bug's risk comes from what it touches, not urgency, so priority barely moves it, except a high-priority bug often signals an active incident, which tends to be rushed and under-specified. A task carries more inherent ambiguity than a bug, so urgency compounds risk. A story needs product judgment regardless of urgency, so Type alone floors it at Tier 2. The tier is provisional and can only be pushed stricter by Devin's own findings, never relaxed.
 
 Concretely: Tier 1 (Low) - minimum score 0.6, a smaller set of mandatory evidence fields, capped at 3 affected files, no checkpoint-level review required. Tier 2 (Medium) - minimum score 0.75, more fields mandatory, capped at 10 files, human reviews every checkpoint. Tier 3 (High) - minimum score 0.9, all seven evidence fields mandatory, uncapped files, always human-reviewed, and may stay fully human-managed rather than entering the harness at all.
+
+### Why the mandatory fields differ by tier
+
+The asymmetry in `policy.yaml`'s `mandatory_evidence_fields` is deliberate, not visible from the YAML alone:
+
+- `checked_protected_areas`, `documentation_checked_if_exists`, `identified_affected_files`, `analysis_is_code_grounded`, `tests_identified_if_applicable` - mandatory at **every** tier. Even a trivial fix needs to name its file and be grounded in real code.
+- `has_testable_success_criteria` - mandatory from Tier 2 up. Tier 1 still counts it toward the aggregate score, just doesn't hard-block on it alone.
+- `read_impacted_files_fully` - mandatory **only** at Tier 3. Unlike the two "fairness fields" below, there's no legitimate "not applicable" case here, so keeping it tier-scaled is proportional scrutiny, not a gap.
+
+`documentation_checked_if_exists` and `tests_identified_if_applicable` are derived fields (`(not X_exists) or read/identified_X`, see `compute_deterministic_score()`), not raw Devin answers - they exist so a ticket isn't penalized for correctly reporting that documentation or tests don't apply. `tests_identified_if_applicable` was added specifically to mirror that pattern, rather than making `identified_required_tests` mandatory everywhere and risking the same false-penalty problem.
 
 ## Automatic tier promotion
 
