@@ -67,7 +67,7 @@ Never tier-dependent: no direct master merge, no writes to protected paths (CI/C
 
 ## Manual checkpoint override - how real implement testing was actually done
 
-Since no resume mechanism exists yet, a ticket that stops for human checkpoint review has no built way to be told "approved, continue." To test the implement step for real anyway, two standalone scripts (run_implement_manual_override.py, run_implement_manual_override_sandbox2.py) were used - not a feature of the harness itself, a testing workaround.
+Since no resume mechanism exists yet, a ticket that stops for human checkpoint review has no built way to be told "approved, continue." To actually test the implement step, two standalone scripts (run_implement_manual_override.py, run_implement_manual_override_sandbox2.py) were used - not a feature of the harness itself, a testing workaround.
 
 Each script reconstructs the exact ticket and the exact AssessImpactOutput already returned from a real, already-reviewed assess run, then calls run_implement_step() directly - skipping past the requires_human_review check in run_harness() that would otherwise stop it. No new assess call happens and no extra Devin quota is spent re-assessing; only the implement step itself runs for real.
 
