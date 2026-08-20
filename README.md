@@ -32,8 +32,8 @@ See **[`docs/SystemOverview.md`](docs/SystemOverview.md)** for the full detail o
 - **No resume mechanism.** A ticket that stops for human checkpoint review has no built way to be told "approved, continue."
 - **No Exel.Work connection of any kind.** See `docs/ExelWorkIntegration.md` for what this would require.
 - **Not tested on any project besides `EX`.** The repo mapping only has one entry.
-- **Real end-to-end (assess → implement → PR) has been tested three times**, all on a sandboxed test branch, all requiring a manual checkpoint bypass since no resume mechanism exists. CI verification is now confirmed working — see `docs/ExelWorkIntegration.md` for the one real caveat found.
-
+- **Real end-to-end (assess → implement → PR) has been tested on two tickets**, (SANDBOX-1, SANDBOX-2), all on a sandboxed test branch, all requiring a manual checkpoint bypass since no resume mechanism exists. SANDBOX-1 was run a second time specifically to validate CI verification once github_client.py was wired in - three runs total, two distinct tickets. CI verification is now confirmed working - see docs/ExelWorkIntegration.md for the one real caveat found.
+  
 Full list of smaller known gaps: **[`docs/KnownFollowUps.md`](docs/KnownFollowUps.md)**.
 
 ## Setup and running it
