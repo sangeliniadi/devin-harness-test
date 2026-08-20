@@ -62,6 +62,10 @@ In line with the goal of having a clear picture of what happened, the following 
 
 **GitHub owns:** code, PRs, branch protection, CI - and already notifies natively for PR reviews, comments, and CI status; duplicating that through Exel.Work adds nothing.
 
+## GitNexus Exploration
+
+GitNexus was tested separately as a possible independent blast-radius check against five real tickets' actual findings - one agreement out of five. The consistent cause: it only sees function-call relationships, while most of this app's real risk lives in shared data, API boundaries, or rendering behavior instead. Full detail was reviewed separately. Not adopted as a blast-radius gate. One narrower use - reliably tracing a real function's call path into actual auth code - is worth a small, separate follow-up.
+
 ### What's still missing, not just "future work"
 
 - **No webhook listener.** Every ticket this project ever processed was fetched manually, by running a script. Nothing fires automatically off a real Jira event.
