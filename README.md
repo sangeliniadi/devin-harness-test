@@ -4,7 +4,7 @@ A control layer that sits between Exel.Work tickets and Devin, deciding when Dev
 
 ## What this does today
 
-A ticket goes through up to two checkpoints: **assess** (Devin investigates and reports back, writes no code) and **implement** (Devin writes code and opens a PR). The harness independently validates Devin's output at each step using deterministic checks, not Devin's own self-reported confidence - replacing a self-rated score with seven concrete evidence questions, six named analysis gates, automatic tier-based strictness (with a safe, narrow promotion mechanism), a guarded retry on a weak first pass, and independent CI verification against GitHub's real check-run data.
+The harness sits between a ticket and Devin's own output, independently validating each step with deterministic checks rather than trusting Devin's self-reported confidence - replacing a self-rated score with seven concrete evidence questions, six named analysis gates, automatic tier-based strictness, a guarded retry on a weak first pass, and independent CI verification against GitHub's real check-run data.
 
 See **[`docs/SystemOverview.md`](docs/SystemOverview.md)** for the full detail on how each of these actually works.
 
